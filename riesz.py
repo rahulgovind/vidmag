@@ -7,6 +7,7 @@ from common import get_phase_difference_and_amplitude, get_riesz_pyramid, \
     reconstruct, amplitude_weighted_blur, phase_shift, load_riesz_pyramid, \
     IIRFilter
 from scipy import signal
+import matplotlib.pyplot as plt
 
 PROFILE = True
 
@@ -44,6 +45,7 @@ def amplify_video(fname, output_filename, max_frames, low_cutoff, high_cutoff,
 
     if PROFILE:
         yappi.start()
+
 
     for i, (a_curr, b_curr, c_curr, residual, frame, raw_frame) in enumerate(riesz_gen):
         start_time = time.time()
@@ -85,6 +87,25 @@ def amplify_video(fname, output_filename, max_frames, low_cutoff, high_cutoff,
         if i == 0:
             writer.write(raw_frame)
         else:
+            if i == 90:
+                for level in range(1, levels - 1):
+                    plt.subplot(levels - 2, 1, level)
+                    skimage.io.imshow(a_curr[level])
+
+                plt.savefig('images/a_curr.png', bbox_inches='tight')
+                plt.clf()
+                for level in range(1, levels - 1):
+                    plt.subplot(levels - 2, 1, level)
+                    skimage.io.imshow(b_curr[level])
+                plt.savefig('images/b_curr.png', bbox_inches='tight')
+                # plt.show()
+                plt.clf()
+                for level in range(1, levels - 1):
+                    plt.subplot(levels - 2, 1, level)
+                    skimage.io.imshow(c_curr[level])
+                plt.savefig('images/c_curr.png', bbox_inches='tight')
+                # plt.show()
+                plt.clf()
             mag_pyr[levels] = residual
             result = np.clip(reconstruct([np.nan_to_num(mag_pyr[level])
                                           for level in range(levels + 1)]), 0, 1)
@@ -105,20 +126,13 @@ def amplify_video(fname, output_filename, max_frames, low_cutoff, high_cutoff,
 
 
 def main():
-    amplify_video("smoke.avi",
-                  "amplified-videos/phase-based/smoke.mp4",
-                  None, 9, 15,
-                  amplification=20.0,
+    amplify_video("baby.mp4",
+                  "amplified-videos/phase-based/baby.mp4",
+                  None, 30 / 60, 120 / 60,
+                  amplification=10.0,
                   scale=1.00,
                   levels=5,
                   grayscale=False)
-    # amplify_video("baby.mp4",
-    #               "amplified-videos/phase-based/baby2.mp4",
-    #               None, 30 / 60, 120 / 60,
-    #               amplification=5.0,
-    #               scale=0.25,
-    #               levels=5,
-    #               grayscale=False)
 
 
 if __name__ == "__main__":
