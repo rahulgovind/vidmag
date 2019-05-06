@@ -5,6 +5,7 @@ import skimage
 from itertools import islice
 import re
 import os
+from collections import deque
 
 
 def load_video(fname, max_frames=-1, grayscale=True):
@@ -159,6 +160,41 @@ class IdealTemporalFilter(object):
         return self.low_pass1 - self.low_pass2
 
 
+class IIRFilter(object):
+    def __init__(self, b, a):
+        self.n = len(a)
+        self.m = len(b)
+
+        self.x_ = deque([None] * self.m)
+        self.y_ = deque([None] * self.n)
+
+        self.a = a
+        self.b = b
+
+    def filter(self, data):
+        self.x_.pop()
+        self.x_.appendleft(np.array(data))
+
+        res = np.zeros_like(data)
+        for i in range(self.m):
+            if self.x_[i] is None:
+                continue
+            res += self.b[i] * self.x_[i]
+
+        for i in range(1, self.n):
+            if self.y_[i] is None:
+                continue
+            res -= self.a[i] * self.y_[i]
+
+        res /= self.a[0]
+
+        self.y_.pop()
+        self.y_[0] = np.array(res)
+        self.y_.appendleft(None)
+
+        return res
+
+
 def phase_shift(a, b, c, phase_cos, phase_sin):
     phase = (phase_cos ** 2 + phase_sin ** 2) ** 0.5
     shift_a = np.cos(phase)
@@ -220,7 +256,11 @@ def _precompute_riesz(fname, levels, grayscale, scale, max_frames):
                            pyr_shapes[-1][1] // 2))
     print(pyr_shapes)
     fname0 = re.findall("([a-zA-Z_-]+).(mp4|avi)", fname)[0][0]
-    output_dir = "_".join(str(_) for _ in [fname0, levels, grayscale, scale, max_frames])
+    if not os.path.isdir("_precomputed"):
+        os.mkdir("_precomputed")
+    output_dir = "_precomputed/" + "_".join(str(_) for _ in [fname0, levels,
+                                                             grayscale, scale,
+                                                             max_frames])
 
     if os.path.isdir(output_dir):
         mode = "r"
@@ -275,7 +315,7 @@ def _precompute_riesz(fname, levels, grayscale, scale, max_frames):
 
 def load_riesz_pyramid(fname, levels, grayscale, scale, max_frames, pregen=True):
     if not pregen:
-        frame_gen = load_video(fname)
+        frame_gen = load_video(fname, grayscale=grayscale)
 
         for i, input_frame in enumerate(islice(frame_gen, max_frames)):
             input_frame = skimage.transform.rescale(input_frame, scale)
@@ -283,6 +323,7 @@ def load_riesz_pyramid(fname, levels, grayscale, scale, max_frames, pregen=True)
                 frame = input_frame
             else:
                 frame = input_frame[:, :, 0]
+            print(input_frame.shape)
             a_curr, b_curr, c_curr, residual = get_riesz_pyramid(frame, levels)
 
             yield a_curr, b_curr, c_curr, residual, frame, input_frame
