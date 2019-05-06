@@ -154,15 +154,14 @@ class VideoWriter(object):
         self.writer.release()
 
 
-def amplify_video(video_fname, max_frames=-1, levels=5):
+def amplify_video(video_fname, output_filename, max_frames=-1, levels=5):
     assert levels > 0
 
     fps, frame_count, width, height = get_video_details(video_fname)
     filters = [IdealTemporalFilter(30 / 60 / fps, 120 / 60 / fps) for _ in range(levels)]
 
     # Setup writer
-    vid_writer = VideoWriter("out2.mp4", width, height)
-    # vid_writer = VideoWriter("out2.mp4", width, height)
+    vid_writer = VideoWriter(output_filename, width, height)
 
     counter = 0
     for frame in load_video(video_fname, max_frames):
@@ -207,13 +206,28 @@ def amplify_video(video_fname, max_frames=-1, levels=5):
         # Reconstruction
         res_frame = reconstruct([amplified[level] for level in range(levels)])
 
-        # if counter == 10:
-        #     # skimage.io.imshow(res_frame)
-        #     for i in range(6):
-        #         plt.subplot(2, 3, i + 1)
-        #         yiq_plot(amplified[i] / np.max(amplified[i]))
-        #         print("level: ", i + 1, " max: ", np.max(amplified[i]))
+        # if counter == 90:
+        #     plt.subplot(3, 1, 1)
+        #     skimage.io.imshow(lap_pyramid[levels - 4] / np.max(lap_pyramid[levels - 4]))
+        #     plt.subplot(3, 1, 2)
+        #     skimage.io.imshow(lap_pyramid[levels - 3] / np.max(lap_pyramid[levels - 3]))
+        #     plt.subplot(3, 1, 3)
+        #     skimage.io.imshow(lap_pyramid[levels - 2] / np.max(lap_pyramid[levels - 2]))
+        #     plt.savefig('intermediate-data/baby-amplified-laplacian.png',
+        #                 bbox_inches='tight')
         #     plt.show()
+        #     plt.clf()
+        #
+        #     plt.subplot(3, 1, 1)
+        #     skimage.io.imshow(amplified[levels - 4] / np.max(amplified[levels - 4]))
+        #     plt.subplot(3, 1, 2)
+        #     skimage.io.imshow(amplified[levels - 3] / np.max(amplified[levels - 3]))
+        #     plt.subplot(3, 1, 3)
+        #     skimage.io.imshow(amplified[levels - 2] / np.max(amplified[levels - 2]))
+        #     plt.savefig('intermediate-data/baby-amplified-filtered.png',
+        #                 bbox_inches='tight')
+        #     plt.show()
+        #     plt.clf()
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -239,4 +253,6 @@ def yiq_plot(img):
 
 
 if __name__ == "__main__":
-    amplify_video("baby.mp4", max_frames=-1, levels=7)
+    amplify_video("baby.mp4",
+                  "amplified-videos/linear/baby.mp4",
+                  max_frames=-1, levels=5)
