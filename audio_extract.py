@@ -30,7 +30,7 @@ def combine(arrays, base=0, filt=None):
 
 def reconstruct_audio(signal_filename, output_filename, low_cutoff, high_cutoff):
     data = np.load(signal_filename)
-    arr = data['arr_0'][:, :, 1:].astype(np.float64)
+    arr = data['arr_0'][:, ::2, 1:].astype(np.float64)
     arr = arr.reshape(-1, arr.shape[2])
 
     filter = lambda x: signal.sosfilt(signal.butter(11, (low_cutoff - 50,
@@ -54,6 +54,8 @@ def main():
                       "reconstructed-audio/chips2-mary.wav", 150, 550)
     # reconstruct_audio("reconstructed-signals/plant-mary.npz",
     #                   "reconstructed-audio/plant-mary.wav", 150, 550)
+    # reconstruct_audio("reconstructed-signals/chips1-mary-voice.npz",
+    #                   "reconstructed-audio/chips1-mary-voice.wav", 180, 1000)
 
 
 if __name__ == "__main__":

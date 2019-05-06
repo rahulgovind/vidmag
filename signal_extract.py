@@ -88,30 +88,22 @@ def save_res(fname, outfname, max_frames, low_cutoff, high_cutoff,
 
 
 def main():
-    # amplify_video("Chips2-2200Hz-Mary_MIDI-input.avi", 17600,
-    #               50 * 30 / 2200, 1500 * 30 / 2200,
-    #               scale=0.25,
-    #               amplification=1.0)
-    # save_res("Chips2-2200Hz-Mary_MIDI-input.avi", None,
+    # save_res("Chips2-2200Hz-Mary_MIDI-input.avi",
+    #          "reconstructed-signals/chips2-mary.npz",
+    #          None,
     #          50 * 30 / 2200, 1500 * 30 / 2200,
     #          scale=0.25)
-    # amplify_video("baby.mp4", None, 30 / 60, 120 / 60)
-    save_res("Chips2-2200Hz-Mary_MIDI-input.avi",
-             "reconstructed-signals/chips2-mary.npz",
-             None,
-             50 * 30 / 2200, 1500 * 30 / 2200,
-             scale=0.25)
 
     # save_res("Plant-2200Hz-Mary_MIDI-input.avi",
     #          "reconstructed-signals/plant-mary.npz",
     #          None,
     #          50 * 30 / 2200, 1500 * 30 / 2200,
     #          scale=0.25)
-    # save_res("Chips1-2200Hz-Mary_Had-input.avi",
-    #          "reconstructed-signals/chips1-mary-voice.npz",
-    #          None,
-    #          50 * 30 / 2200, 1500 * 30 / 2200,
-    #          scale=0.25)
+    save_res("Chips1-2200Hz-Mary_Had-input.avi",
+             "reconstructed-signals/chips1-mary-voice.npz",
+             None,
+             50 * 30 / 2200, 1500 * 30 / 2200,
+             scale=0.25)
 
 
 if __name__ == "__main__":
