@@ -137,9 +137,9 @@ def save_res(fname, outfname, max_frames, low_cutoff, high_cutoff,
     if PROFILE:
         yappi.start()
 
-    signals1 = [[None] for _ in range(levels)]
-    signals2 = [[None] for _ in range(levels)]
-    amps = [[None] for _ in range(levels)]
+    signal_orientations = [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4]
+    signals = [[[None] for _ in range(len(signal_orientations))]
+               for _ in range(levels)]
 
     for i, (a_curr, b_curr, c_curr, residual, frame, raw_frame) in enumerate(riesz_gen):
         start_time = time.time()
@@ -172,16 +172,20 @@ def save_res(fname, outfname, max_frames, low_cutoff, high_cutoff,
                 pd_cosf2 = pd_cosf
                 pd_sinf2 = pd_sinf
 
-                signals1[level].append(np.sum(pd_cosf2 * amplitude ** 2))
-                signals2[level].append(np.sum(pd_sinf2 * amplitude ** 2))
-                amps[level].append(np.sum(amplitude))
+                for idx, orientation in enumerate(signal_orientations):
+                    signals[level][idx].append(
+                        np.sum(
+                            (pd_cosf2 * np.cos(orientation) +
+                             pd_sinf2 * np.sin(orientation)) * amplitude ** 2
+                        ))
+                # amps[level].append(np.sum(amplitude))
 
         end_time = time.time()
         a_prev, b_prev, c_prev = a_curr, b_curr, c_curr
         print(f"{i + 1} frames processed. "
               f"Frame {i + 1} required {end_time - start_time} seconds")
 
-    np.savez(outfname, signals1, signals2, amps)
+    np.savez(outfname, signals)
 
     if PROFILE:
         yappi.get_func_stats().print_all()
@@ -197,14 +201,14 @@ def main():
     #          50 * 30 / 2200, 1500 * 30 / 2200,
     #          scale=0.25)
     # amplify_video("baby.mp4", None, 30 / 60, 120 / 60)
-    # save_res("Plant-2200Hz-Mary_MIDI-input.avi", "plant-mary.npz",
-    #          None,
-    #          50 * 30 / 2200, 1500 * 30 / 2200,
-    #          scale=0.25)
-    save_res("Chips1-2200Hz-Mary_Had-input.avi", "chips1-mary-voice.npz",
+    save_res("Plant-2200Hz-Mary_MIDI-input.avi", "plant-mary.npz",
              None,
              50 * 30 / 2200, 1500 * 30 / 2200,
              scale=0.25)
+    # save_res("Chips1-2200Hz-Mary_Had-input.avi", "chips1-mary-voice.npz",
+    #          None,
+    #          50 * 30 / 2200, 1500 * 30 / 2200,
+    #          scale=0.25)
 
 
 if __name__ == "__main__":
