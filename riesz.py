@@ -129,7 +129,7 @@ def main():
     amplify_video("baby.mp4",
                   "amplified-videos/phase-based/baby.mp4",
                   None, 30 / 60, 120 / 60,
-                  amplification=10.0,
+                  amplification=20.0,
                   scale=1.00,
                   levels=5,
                   grayscale=False)
